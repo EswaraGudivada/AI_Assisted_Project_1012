@@ -1,0 +1,51 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+
+# NuGet
+packages/
+*.nupkg
+.nuget/
+
+# Visual Studio Code
+.vscode/
+
+# Rider
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# SQLite
+*.db
+*.sqlite
+
+# Logs
+*.log
+
+# Temporary files
+*_ReSharper*/
+_ReSharper*/
+
+# Test results
+TestResults/
+
+# Coverage
+coverage*/
+
+# user-specific files
+*.log
+
+# JetBrains Rider
+.idea/
+
+# Azure Pipelines
+*.azure-pipelines.yml

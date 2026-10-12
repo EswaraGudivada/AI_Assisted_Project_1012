@@ -1,0 +1,82 @@
+name: CI — Build, Test, Quality Gates
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore NuGet packages
+      run: dotnet restore UrlShortener.sln
+
+    - name: Build (Release configuration)
+      run: dotnet build UrlShortener.sln --configuration Release --no-restore
+
+    - name: Run tests
+      run: dotnet test UrlShortener.sln --configuration Release --no-build --logger "trx" --results-directory ./test-results --verbosity normal
+
+    - name: Check code formatting
+      run: |
+        dotnet tool install -g dotnet-format
+        dotnet format UrlShortener.sln --verify-no-changes
+
+    - name: Check for vulnerable packages
+      run: dotnet list UrlShortener.sln package --vulnerable
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: ./test-results
+
+    - name: Publish test results
+      if: always()
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      with:
+        files: ./test-results/**/*.trx
+        check_name: Test Results
+
+  code-quality:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore NuGet packages
+      run: dotnet restore UrlShortener.sln
+
+    - name: Run build
+      run: dotnet build UrlShortener.sln --configuration Release --no-restore
+
+    - name: Run analyzers
+      run: dotnet build UrlShortener.sln --configuration Release /p:EnforceCodeStyleInBuild=true
+
+    - name: Verify no formatting issues
+      run: |
+        dotnet tool install -g dotnet-format
+        dotnet format UrlShortener.sln --verify-no-changes
+
